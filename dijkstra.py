@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from heapq import *
 import copy
+import time
 
 #Initialising variables
 start_pos = [0,0]
@@ -13,6 +14,12 @@ goal_found = False
 
 nodes = []
 heapify(nodes)
+
+size = (1200, 500)
+
+result = cv2.VideoWriter('dijkstra.mp4',
+                         cv2.VideoWriter_fourcc(*'MP4V'),
+                         20, size)
 
 def generate_map():
     #Walls
@@ -103,7 +110,7 @@ def position_validation(position):
     global goal_found
     if [int(position[2]),int(position[3])] == goal_pos:
         backtrack_dict[(int(position[2]),int(position[3]))] = (int(position[4]),int(position[5]))
-        print("YOYOYO")
+        print("Goal reached")
         goal_found = True
     if 5 < position[2] < 1195:
         pass
@@ -138,14 +145,23 @@ def add_neighbours(position):
 
 def backtrack():
     parent_pixel = backtrack_dict[(goal_pos[0],goal_pos[1])]
+    start_to_goal = [parent_pixel]
     while not parent_pixel == (start_pos[0],start_pos[1]):
+        start_to_goal.append(parent_pixel)
+        parent_pixel = backtrack_dict[parent_pixel]
         # print(backtrack_dict[(goal_pos[0],goal_pos[1])])
         # frame[parent_pixel[1],parent_pixel[0]] = [255,0,255]
-        cv2.circle(frame, [parent_pixel[0],parent_pixel[1]], 2, (0,255,255), -1) 
-        cv2.imshow("Starting Map", frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
-        parent_pixel = backtrack_dict[parent_pixel]
+    start_to_goal.reverse()
+    count=0
+    for pixel in start_to_goal: 
+        cv2.circle(frame, [pixel[0],pixel[1]], 2, (0,255,255), -1) 
+        if count%10 == 0:
+            # cv2.imshow("Starting Map", frame)
+            result.write(frame)
+            # if cv2.waitKey(1) == ord('q'):
+            #     break
+        count = count+1
+    
         
 
 def djikstra():
@@ -154,18 +170,33 @@ def djikstra():
     add_neighbours(current_pos)
     count = 0
     while not goal_found:
-        count = count+1
         current_pos = heappop(nodes)
         add_neighbours(current_pos)
         if count%500 == 0:
-            cv2.imshow("Starting Map", frame)
-            if cv2.waitKey(1) == ord('q'):
-                break
+            result.write(frame)
+            # cv2.imshow("Starting Map", frame)
+            # if cv2.waitKey(1) == ord('q'):
+            #     break
+        count = count+1
     backtrack()
+    result.release()
     cv2.destroyAllWindows()
     return
 
- 
+def visualise():
+    cap = cv2.VideoCapture('dijkstra.mp4')
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            print("Exiting, end of video?")
+            break
+        cv2.imshow('Dijkstra Visualisation', frame)
+        time.sleep(0.05)
+        if cv2.waitKey(1) == ord('q'):
+            break
+    
+    cap.release()
+    cv2.destroyAllWindows()
 
 def main():
     generate_map()
@@ -173,6 +204,7 @@ def main():
     print("Starting position of the robot", start_pos[0], ",", map_size[1] - start_pos[1])
     print("Goal position of the robot", goal_pos[0], ",", map_size[1] - goal_pos[1])
     djikstra()
+    visualise()
 
 if __name__ == "__main__":
     main()
