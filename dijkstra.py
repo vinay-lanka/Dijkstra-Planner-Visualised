@@ -97,9 +97,12 @@ def set_start_goal_pos():
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+backtrack_dict = {}
+
 def position_validation(position):
     global goal_found
     if [int(position[2]),int(position[3])] == goal_pos:
+        backtrack_dict[(int(position[2]),int(position[3]))] = (int(position[4]),int(position[5]))
         print("YOYOYO")
         goal_found = True
     if 5 < position[2] < 1195:
@@ -112,6 +115,8 @@ def position_validation(position):
         return
     if np.all(frame[int(position[3]),int(position[2])]):
         frame[int(position[3]),int(position[2])] = [255,0,0]
+        #child -> parent
+        backtrack_dict[(int(position[2]),int(position[3]))] = (int(position[4]),int(position[5]))
         position[0] = position[0]+position[1]
         heappush(nodes,[position[0],position[2],position[3]])
         return
@@ -122,25 +127,41 @@ def position_validation(position):
 def add_neighbours(position):
     c,x,y = position[0], position[1], position[2]
     # print(x,500-y)
-    position_validation([c,1,x+1,y])
-    position_validation([c,1,x-1,y])
-    position_validation([c,1,x,y+1])
-    position_validation([c,1,x,y-1])
-    position_validation([c,1.4,x+1,y+1])
-    position_validation([c,1.4,x-1,y+1])
-    position_validation([c,1.4,x+1,y-1])
-    position_validation([c,1.4,x-1,y-1])
+    position_validation([c,1,x+1,y,x,y])
+    position_validation([c,1,x-1,y,x,y])
+    position_validation([c,1,x,y+1,x,y])
+    position_validation([c,1,x,y-1,x,y])
+    position_validation([c,1.4,x+1,y+1,x,y])
+    position_validation([c,1.4,x-1,y+1,x,y])
+    position_validation([c,1.4,x+1,y-1,x,y])
+    position_validation([c,1.4,x-1,y-1,x,y])
+
+def backtrack():
+    parent_pixel = backtrack_dict[(goal_pos[0],goal_pos[1])]
+    while not parent_pixel == (start_pos[0],start_pos[1]):
+        # print(backtrack_dict[(goal_pos[0],goal_pos[1])])
+        # frame[parent_pixel[1],parent_pixel[0]] = [255,0,255]
+        cv2.circle(frame, [parent_pixel[0],parent_pixel[1]], 2, (0,255,255), -1) 
+        cv2.imshow("Starting Map", frame)
+        if cv2.waitKey(1) == ord('q'):
+            break
+        parent_pixel = backtrack_dict[parent_pixel]
+        
 
 def djikstra():
     current_pos = [0,start_pos[0],start_pos[1]]
     frame[int(current_pos[1]),int(current_pos[0])] = [255,0,0]
     add_neighbours(current_pos)
+    count = 0
     while not goal_found:
+        count = count+1
         current_pos = heappop(nodes)
         add_neighbours(current_pos)
-        cv2.imshow("Starting Map", frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
+        if count%500 == 0:
+            cv2.imshow("Starting Map", frame)
+            if cv2.waitKey(1) == ord('q'):
+                break
+    backtrack()
     cv2.destroyAllWindows()
     return
 
