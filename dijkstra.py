@@ -201,9 +201,12 @@ def visualise():
 def main():
     generate_map()
     set_start_goal_pos()
+    start_time = time.time()
     print("Starting position of the robot", start_pos[0], ",", map_size[1] - start_pos[1])
     print("Goal position of the robot", goal_pos[0], ",", map_size[1] - goal_pos[1])
     djikstra()
+    end_time = time.time()
+    print("Time taken for solution: ", end_time - start_time)
     visualise()
 
 if __name__ == "__main__":
