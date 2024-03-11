@@ -1,26 +1,40 @@
+'''
+Dikjstra Algorithm
+dijkstra.py
+Author - Vinay Lanka
+vlanka@umd.edu
+120417665
+'''
+
+#Github link to repository - https://github.com/vinay-lanka/Dijkstra-Planner-Visualised
+
+#Imports
 import numpy as np
 import cv2
 from heapq import *
 import copy
 import time
 
-#Initialising variables
+#Initialising variables for map and frame
 start_pos = [0,0]
 goal_pos = [0,0]
 map_size = [1200,500]
 frame = np.full([map_size[1],map_size[0],3], (0,255,0)).astype(np.uint8)
 
+#Goal found flag to stop exploring nodes
 goal_found = False
 
+#Priority queue used for dijkstra
 nodes = []
 heapify(nodes)
 
+#Size for output video frames
 size = (1200, 500)
-
 result = cv2.VideoWriter('dijkstra.mp4',
                          cv2.VideoWriter_fourcc(*'MP4V'),
                          20, size)
 
+# Function to generate the map and add obstacles
 def generate_map():
     #Walls
     walls_inflated = np.array([[[5,5],
@@ -60,6 +74,7 @@ def generate_map():
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+# FUnction to validate input coordinates
 def input_validation(position):
     #Check if input in map
     if 5 < position[0] < 1195:
@@ -70,11 +85,13 @@ def input_validation(position):
         pass
     else:
         return False
+    #Check if in obstacle
     if np.all(frame[position[1],position[0]]):
         return True
     else:
         return False
 
+# Function to take input coordinates and pass to validation function
 def set_start_goal_pos():
     global start_pos, goal_pos
     positions_valid = False
@@ -104,14 +121,18 @@ def set_start_goal_pos():
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
+#Backtrack dictionary for path backtracking
 backtrack_dict = {}
 
+# Function for validating a neighbour 
 def position_validation(position):
     global goal_found
+    #Check if goal is found
     if [int(position[2]),int(position[3])] == goal_pos:
         backtrack_dict[(int(position[2]),int(position[3]))] = (int(position[4]),int(position[5]))
         print("Goal reached")
         goal_found = True
+    #Check if neighbour in map
     if 5 < position[2] < 1195:
         pass
     else:
@@ -120,6 +141,7 @@ def position_validation(position):
         pass
     else:
         return
+    #Check if the neighbour is in an obstacle or is already visited
     if np.all(frame[int(position[3]),int(position[2])]):
         frame[int(position[3]),int(position[2])] = [255,0,0]
         #child -> parent
@@ -130,7 +152,7 @@ def position_validation(position):
     else:
         return
     
-
+# Function to add the neighbours of a possible node
 def add_neighbours(position):
     c,x,y = position[0], position[1], position[2]
     # print(x,500-y)
@@ -143,6 +165,7 @@ def add_neighbours(position):
     position_validation([c,1.4,x+1,y-1,x,y])
     position_validation([c,1.4,x-1,y-1,x,y])
 
+# Function to find the path to a goal node using backtracking dict
 def backtrack():
     parent_pixel = backtrack_dict[(goal_pos[0],goal_pos[1])]
     start_to_goal = [parent_pixel]
@@ -162,8 +185,7 @@ def backtrack():
             #     break
         count = count+1
     
-        
-
+# The code dijkstra algorithm, using priority queues to pop nodes and add neighbours back to a heap
 def djikstra():
     current_pos = [0,start_pos[0],start_pos[1]]
     frame[int(current_pos[1]),int(current_pos[0])] = [255,0,0]
@@ -183,6 +205,7 @@ def djikstra():
     cv2.destroyAllWindows()
     return
 
+# Visualise the output video generated
 def visualise():
     cap = cv2.VideoCapture('dijkstra.mp4')
     while cap.isOpened():
@@ -198,6 +221,7 @@ def visualise():
     cap.release()
     cv2.destroyAllWindows()
 
+#Run all functions in order
 def main():
     generate_map()
     set_start_goal_pos()

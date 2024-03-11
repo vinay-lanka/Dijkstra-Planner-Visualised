@@ -1,7 +1,10 @@
 # Project 2 - ENPM661 - Planning for Autonomous Robots
 ## Implementation of the Dijkstra Algorithm for a Point Robot
 
-#Github link to repository - https://github.com/vinay-lanka/Dijkstra-Planner-Visualised
+Vinay Lanka
+Email - vlanka@umd.edu (120417665)
+
+Github link to repository - https://github.com/vinay-lanka/Dijkstra-Planner-Visualised
 
 This Python script (`djikstra.py`) demonstrates the Dijkstra algorithm for pathfinding in a 2D grid environment using OpenCV for visualization. The script generates a map with obstacles and walls, allows the user to input a start and goal position, and then visualizes the process of finding the shortest path from the start to the goal using Dijkstra's algorithm.
 
